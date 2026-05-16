@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+venv/
+istoric_spotify.db
+genuri_mb.json
+test_*.py
+templates/*.lnk
+tst_lfm.py
