@@ -127,7 +127,29 @@ def api_similar(spotify_id):
     print(f"[TIMING] TOTAL: {time.time()-t0:.2f}s")
     return jsonify(similare)
 
+@app.route('/api/track-info/<spotify_id>')
+def api_track_info(spotify_id):
+    token = get_spotify_token()
+    track_basic = get_track_by_id(spotify_id, token)
 
+    if not track_basic:
+        return jsonify({})
+    
+    lastfm_info = get_track_info(track_basic['name'], track_basic['artist'])
+
+    rez = {
+        'recording' : None,
+        'artist' : None
+    }
+
+    if lastfm_info:
+        if lastfm_info.get('mbid'):
+            from mb import get_recording_info
+            rez['recording'] = get_recording_info(lastfm_info['mbid'])
+        if lastfm_info.get('artist_mbid'):
+            from mb import get_artist_details
+            rez['artist'] = get_artist_details(lastfm_info['artist_mbid'])
+    return jsonify(rez)
 
 if __name__ == '__main__':
     app.run(debug=True)

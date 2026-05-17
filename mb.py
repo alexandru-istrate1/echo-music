@@ -29,7 +29,7 @@ def get_recording_info(mbid):
         return cache
     print(f"[CACHE MISS MB]")
 
-    raspuns = _request_mb(f'recording/{mbid}', {'inc': 'genres+tags+releases'})
+    raspuns = _request_mb(f'recording/{mbid}', {'inc': 'genres+tags+releases+labels'})
 
     if raspuns is None:
         return None

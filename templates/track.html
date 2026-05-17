@@ -47,6 +47,12 @@
         
         /* Eroare */
         .error-msg { color: #d51007; font-weight: bold; padding: 15px; background-color: #fff0f0; border: 1px solid #d51007; }
+
+        /* Wikipedia sectiuni de info*/
+        .info-section {display: none; margin-bottom: 20px;}
+        .info-row { padding: 4px 0; font-size: 12px; color: #444; }
+        .info-row .label { font-weight: bold; color: #555; display: inline-block; width: 100px; }
+        .genre-badge { display: inline-block; background-color: #3b3b3b; color: white; padding: 2px 8px; margin-right: 4px; margin-bottom: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -106,7 +112,16 @@
             {% if lastfm and lastfm.summary %}
                 <div class="summary-box">{{ lastfm.summary | safe }}</div>
             {% endif %}
+            <!--Wikipedia info-->
+            <div id="about-track" class="info-section">
+                <h2>About This Track</h2>
+                <div id="about-track-content"></div>
+            </div>
 
+            <div id="about-artist" class="info-section">
+                <h2>About This Artist</h2>
+                <div id="about-artist-content"></div>
+            </div>
             <!-- recs -->
             <h2>Similar Tracks</h2>
             <div id="similar-container">
@@ -159,6 +174,67 @@
                             document.getElementById('similar-container').innerHTML = 
                                 '<p>Error loading similar tracks.</p>';
                             console.error(err);
+                        });
+                    // Wikipedia info
+                    fetch('/api/track-info/' + spotifyId)
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
+                            // About This Track
+                            if (data.recording) {
+                                var rec = data.recording;
+                                var trackHtml = '';
+
+                                if (rec.release) {
+                                    trackHtml += '<div class="info-row"><span class="label">Release:</span> ' + rec.release + '</div>';
+                                }
+                                if (rec.label) {
+                                    trackHtml += '<div class="info-row"><span class="label">Label:</span> ' + rec.label + '</div>';
+                                }
+                                if (rec.genres && rec.genres.length > 0) {
+                                    trackHtml += '<div class="info-row"><span class="label">Genres:</span> ';
+                                    for (var i = 0; i < rec.genres.length; i++) {
+                                        trackHtml += '<span class="genre-badge">' + rec.genres[i] + '</span>';
+                                    }
+                                    trackHtml += '</div>';
+                                }
+
+                                if (trackHtml) {
+                                    document.getElementById('about-track-content').innerHTML = trackHtml;
+                                    document.getElementById('about-track').style.display = 'block';
+                                }
+                            }
+
+                            // About The Artist
+                            if (data.artist) {
+                                var art = data.artist;
+                                var artistHtml = '';
+
+                                if (art.type) {
+                                    artistHtml += '<div class="info-row"><span class="label">Type:</span> ' + art.type + '</div>';
+                                }
+                                if (art.country) {
+                                    artistHtml += '<div class="info-row"><span class="label">Country:</span> ' + art.country + '</div>';
+                                }
+                                if (art.begin) {
+                                    var years = art.begin.substring(0, 4) + ' – ' + (art.end ? art.end.substring(0, 4) : 'present');
+                                    artistHtml += '<div class="info-row"><span class="label">Active:</span> ' + years + '</div>';
+                                }
+                                if (art.genres && art.genres.length > 0) {
+                                    artistHtml += '<div class="info-row"><span class="label">Genres:</span> ';
+                                    for (var j = 0; j < art.genres.length; j++) {
+                                        artistHtml += '<span class="genre-badge">' + art.genres[j] + '</span>';
+                                    }
+                                    artistHtml += '</div>';
+                                }
+
+                                if (artistHtml) {
+                                    document.getElementById('about-artist-content').innerHTML = artistHtml;
+                                    document.getElementById('about-artist').style.display = 'block';
+                                }
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Track info error:', err);
                         });
                 });
             </script>
