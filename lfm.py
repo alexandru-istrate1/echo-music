@@ -231,7 +231,7 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
     toate_piesele = {}
     
     for rec in lista_lastfm:
-        cheie = f"{rec.get('artist', '').lower()}|{rec.get('name', '').lower()}"
+        cheie = rec.get('name', '').lower().strip()
         toate_piesele[cheie] = {
             'rec': rec,
             'in_lastfm': True,
@@ -239,7 +239,7 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
         }
     
     for rec in lista_lb:
-        cheie = f"{rec.get('artist', '').lower()}|{rec.get('name', '').lower()}"
+        cheie = rec.get('name', '').lower().strip()
         if cheie in toate_piesele:
             # apare in ambele surse
             toate_piesele[cheie]['in_lb'] = True
@@ -268,10 +268,14 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
         if info_rec and info_rec.get('tags'):
             tags_rec = [tag.lower() for tag in info_rec['tags']]
             amprenta_rec = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_rec, _genuri_set_norm))
-            overlap = len(amprenta_originala & amprenta_rec)
         else:
-            overlap = 0
+            amprenta_rec = set()
         
+        if not amprenta_rec:
+            tags_artist = get_artist_tags(rec_artist)
+            if tags_artist:
+                amprenta_rec = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_artist, _genuri_set_norm))
+        overlap = len(amprenta_originala & amprenta_rec)
         match_lastfm = rec.get('match', 0)
         bonus_cross = 5 if (item['in_lastfm'] and item['in_lb']) else 0
         scor_final = overlap * 10 + bonus_cross + match_lastfm
@@ -312,9 +316,18 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
         else:
             rec['similarity_score'] = round((item['overlap'] / max_overlap) * 100)
         recomandari_finale.append(rec)
-    return recomandari_finale
+
+    #max 3 piese / artist
+    lista_finala = []
+    contor_artisti = {}
+    for piesa in recomandari_finale:
+        artist = piesa['artist'].lower()
+        contor_artisti[artist] = contor_artisti.get(artist, 0) + 1
+        if contor_artisti[artist] <= 3:
+            lista_finala.append(piesa)
+    return lista_finala
     
-    return recomandari_finale
+    
 
 def get_artist_top_tracks(artist_mbid, limit=5):
     # ia top piesele unui artist de la lastfm folosind mbid
@@ -348,7 +361,17 @@ def get_artist_top_tracks(artist_mbid, limit=5):
         })
     return rez
 
-
+def get_artist_tags(artist_name):
+    """Tag-uri Last.fm ale unui artist."""
+    parametri = {
+        'method': 'artist.getTopTags',
+        'artist': artist_name
+    }
+    data = _request_lastfm(parametri)
+    if data is None:
+        return []
+    tags_raw = data.get('toptags', {}).get('tag', [])
+    return [t['name'].lower() for t in tags_raw[:10] if int(t.get('count', 0)) > 0]
 
 
 

@@ -101,7 +101,7 @@ def api_similar(spotify_id):
         return jsonify([])
     
     t1 = time.time()
-    similare = get_similar_tracks(track_basic['name'], track_basic['artist'], limit=15)
+    similare = get_similar_tracks(track_basic['name'], track_basic['artist'], limit=20)
     print(f"[TIMING] get_similar_tracks: {time.time()-t1:.2f}s")
 
     t2 = time.time()
