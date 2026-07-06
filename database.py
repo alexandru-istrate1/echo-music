@@ -49,6 +49,14 @@ def setup_database():
     )
     ''')
 
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS LastFmArtistTags(
+        artist TEXT PRIMARY KEY,
+        data TEXT,
+        timestamp INT
+    )
+    ''')
+
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS SpotifyImageMap(
@@ -208,6 +216,45 @@ def salveaza_track_info(cheie, info_dict):
     conn.commit()
     conn.close()
 
+
+def cauta_artist_tags_in_cache(artist, max_varsta_zile=30):
+    artist_curat = artist.lower().strip()
+    limita_timp = int(time.time()) - (max_varsta_zile * 24 * 60 * 60)
+
+    conn = sqlite3.connect(NUME_BAZA_DATE)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    SELECT data FROM LastFmArtistTags
+    WHERE artist = ? AND timestamp > ?
+    ''', (artist_curat, limita_timp))
+
+    rand = cursor.fetchone()
+    conn.close()
+
+    if rand is None:
+        return None
+    return json.loads(rand[0])
+
+
+def salveaza_artist_tags(artist, tags):
+    if tags is None:
+        return
+
+    artist_curat = artist.lower().strip()
+    timestamp_curent = int(time.time())
+    data_json = json.dumps(tags)
+
+    conn = sqlite3.connect(NUME_BAZA_DATE)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    INSERT OR REPLACE INTO LastFmArtistTags (artist, data, timestamp)
+    VALUES (?, ?, ?)
+    ''', (artist_curat, data_json, timestamp_curent))
+
+    conn.commit()
+    conn.close()
 
 
 def cauta_similar_in_cache(cheie, max_varsta_zile = 7):
@@ -409,3 +456,6 @@ def salveaza_lb_similar(artist_mbid, lista):
 
     conn.commit()
     conn.close()
+
+
+

@@ -2,10 +2,10 @@ import requests
 import os 
 from dotenv import load_dotenv
 from sp_trck import formateaza_durata
-from database import cauta_track_info_in_cache, salveaza_track_info, cauta_similar_in_cache, salveaza_similar
+from database import cauta_track_info_in_cache, salveaza_track_info, cauta_similar_in_cache, salveaza_similar, cauta_artist_tags_in_cache, salveaza_artist_tags
 import time as time_module
 from concurrent.futures import ThreadPoolExecutor
-from mb import filtreaza_genuri, incarca_genuri_mb, normalizeaza_gen
+from mb import filtreaza_genuri, incarca_genuri_mb, normalizeaza_gen, familii_gen
 
 load_dotenv()
 _genuri_set_norm = incarca_genuri_mb()
@@ -227,6 +227,9 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
         tags_originala = [tag.lower() for tag in info_originala['tags']]
         amprenta_originala = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_originala, _genuri_set_norm))
     
+    familii_originala = set()
+    for g in amprenta_originala:
+        familii_originala |= familii_gen(g)
     #2- construim un dict unificat cu toate piesele 
     toate_piesele = {}
     
@@ -275,7 +278,18 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
             tags_artist = get_artist_tags(rec_artist)
             if tags_artist:
                 amprenta_rec = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_artist, _genuri_set_norm))
-        overlap = len(amprenta_originala & amprenta_rec)
+
+        
+        familii_rec = set()
+        for g in amprenta_rec:
+            familii_rec |= familii_gen(g)
+        overlap_exact = len(amprenta_originala & amprenta_rec)
+        overlap_familie = len(familii_originala & familii_rec)
+        overlap = overlap_exact * 2 + overlap_familie
+        if overlap == 0:
+            print(f"[0%] {rec_name} - {rec_artist}")
+            print(f"      originala: {amprenta_originala}")
+            print(f"      rec : {amprenta_rec}")
         match_lastfm = rec.get('match', 0)
         bonus_cross = 5 if (item['in_lastfm'] and item['in_lb']) else 0
         scor_final = overlap * 10 + bonus_cross + match_lastfm
@@ -362,7 +376,10 @@ def get_artist_top_tracks(artist_mbid, limit=5):
     return rez
 
 def get_artist_tags(artist_name):
-    """Tag-uri Last.fm ale unui artist."""
+    """Tag-uri Last.fm ale unui artist. (30z)"""
+    cached = cauta_artist_tags_in_cache(artist_name, max_varsta_zile=30)
+    if cached is not None:
+        return cached
     parametri = {
         'method': 'artist.getTopTags',
         'artist': artist_name
@@ -371,9 +388,10 @@ def get_artist_tags(artist_name):
     if data is None:
         return []
     tags_raw = data.get('toptags', {}).get('tag', [])
-    return [t['name'].lower() for t in tags_raw[:10] if int(t.get('count', 0)) > 0]
+    tags = [t['name'].lower() for t in tags_raw[:10] if int(t.get('count', 0)) > 0]
 
-
+    salveaza_artist_tags(artist_name, tags)
+    return tags
 
 
     

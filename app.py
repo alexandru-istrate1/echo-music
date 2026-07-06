@@ -7,6 +7,7 @@ from lfm import get_track_info, get_similar_tracks
 from sp_trck import enrich_spotify_images
 from lfm import reordoneaza_similar
 from flask import jsonify
+from itunes import get_preview_itunes
 import time
 app = Flask(__name__)
 setup_database()
@@ -73,6 +74,8 @@ def track_detail(spotify_id):
     
     #3- ia info de la lastfm
     lastfm_info = get_track_info(track_basic['name'], track_basic['artist'])
+
+    preview_url = get_preview_itunes(track_basic["artist"], track_basic["name"])
     
     #4- ia recomandari de la lastfm
     #similare = get_similar_tracks(track_basic['name'], track_basic['artist'], limit=20)
@@ -85,6 +88,7 @@ def track_detail(spotify_id):
     return render_template(
         'track.html',
         track=track_basic,
+        preview_url=preview_url,
         lastfm=lastfm_info,
         #similare=similare
         similare=[]

@@ -159,5 +159,28 @@ def filtreaza_genuri(tags_lastfm, genuri_set_norm):
     return [tag for tag in tags_lastfm if normalizeaza_gen(tag) in genuri_set_norm]
 
 
+FAMILII = {
+    'electronic': {'electro', 'synth', 'wave', 'tronica', 'techno', 'house',
+                   'trance', 'downtempo', 'ambient', 'glitch', 'idm', 'club',
+                   'dance', 'breakcore', 'dnb', 'dubstep'},
+    'pop':        {'pop'},
+    'rock':       {'rock'},
+    'indie':      {'indie'},
+    'folk':       {'folk', 'singersongwriter', 'acoustic', 'americana'},
+    'hiphop':     {'hiphop', 'rap', 'trap'},
+    'rnb_soul':   {'rnb', 'soul', 'funk', 'neosoul'},
+    'jazz':       {'jazz'},
+    'experimental': {'experimental', 'avantgarde', 'noise'},
+}
+
+def familii_gen(gen):
+    """Familiile la care aparține un tag, după rădăcini (substring)."""
+    rez = set()
+    for familie, cuvinte in FAMILII.items():
+        if any(c in gen for c in cuvinte):
+            rez.add(familie)
+    return rez
+
+
     
     
