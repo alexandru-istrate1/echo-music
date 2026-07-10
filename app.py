@@ -8,10 +8,57 @@ from sp_trck import enrich_spotify_images
 from lfm import reordoneaza_similar
 from flask import jsonify
 from itunes import get_preview_itunes
+import random
 import time
 app = Flask(__name__)
 setup_database()
 _ultima_curatare = time.time()
+
+
+PIESE = [
+    "1wl53ydLl7vh2t7bFMZ5dn",
+    "5qiLqf4uN3jldGTFb2W7rH",
+    "0y9NSQUOROIidcOFc3zJ00",
+    "0SSgFHwFOi2HNrBgnPDc3P",
+    "4qorQTHgJZ4bmeCORA2zQU",
+    "0fKzRLl4kIG8LQikoG1bvb",
+    "3nkdVXnH4xC6f3YZS0C8pC",
+    "66qzEsdBWD9BmgvTuztEfc",
+    "6WRt3zMQLxqt4RtwzTz2TO",
+    "2CT85N0Rwl2UtNOYZ4gepm",
+    "7feFMZxaNV6km5QZAXYyv0",
+    "5x9PIacjaOGqcQkmiQBfKG",
+    "0kSmBFytVCj0POoAQCFWTK",
+    "5gn7mMDHaVMrWGKVMbaSfS",
+    "0J6GmECIOeztIZhdqJ2RaA",
+    "18YikwS69KGuELmDLwhHsD",
+    "3a8H9SY7zTGJt5h4679dPy",
+    "73nifoOJDzdl69R9E96RQa",
+    "2ap04UmehNhJ23Gu9Vnd0Z",
+    "1V9ZOxFFsKUd2ZpY2DKSZR",
+    "32hGR5QuiPmhAdBxsmEUxw",
+    "26tQBNLe0ByJgtZzcEMHls",
+    "2CAVnk831e6jat8lnXk8KX",
+    "2BCw5RBr7KnJHPZ6xNnW7C",
+    "1joiQBvqLuivn9JJyxBXco",
+    "2lzwJjDENCMGBY2cR4ksME",
+    "3Jd6G5xoykZ9IA2LOuQrGh",
+    "6RvDmpY1Vv8iNs5EZ4IFg6",
+    "3ps6s8ojt0ttbKFEj7fuP7",
+    "2C014cVoBciAu3NFRoJpQk",
+    "2OyuxmGylAORg6KIdSdnGQ",
+    "5UiJKkkSBr4rL31pO5KmPP"
+]
+
+def get_homepage_tracks(n = 10):
+    alese = random.sample(PIESE, min(n, len(PIESE)))
+    token = get_spotify_token()
+    piese = []
+    for sid in alese:
+        t = get_track_by_id(sid, token)
+        if t:
+            piese.append(t)
+    return piese
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -44,10 +91,15 @@ def index():
         
         try:
             spotify_token = get_spotify_token()
+            print(f"[DEBUG] token primit: {str(spotify_token)[:15]}")
             rezultate = search_track(text, spotify_token)
         except Exception as e:
             print(f"Eroare la Spotify: {e}")
             rezultate = []
+
+        from sp_trck import rate_limited
+        if not rezultate and rate_limited:
+            return render_template('index.html', error="Temporary unavailable(too many requests). Try again in a couple of minutes.", query=text)
         
         #3 - daca sunt rezultate se salveaza in cache
         if rezultate:
@@ -55,8 +107,9 @@ def index():
         
         return render_template('index.html', results=rezultate, query=text)
     
-    
-    return render_template('index.html')
+    piese_homepage = get_homepage_tracks(n=10)
+    print(f"[DEBUG] homepage: {len(piese_homepage)} piese")
+    return render_template('index.html', piese_homepage=piese_homepage)
 
 @app.route('/track/<spotify_id>')
 def track_detail(spotify_id):
@@ -107,10 +160,12 @@ def api_similar(spotify_id):
     t1 = time.time()
     similare = get_similar_tracks(track_basic['name'], track_basic['artist'], limit=20)
     print(f"[TIMING] get_similar_tracks: {time.time()-t1:.2f}s")
+    print(f"[DEBUG] Last.fm similar: {len(similare)} piese")
 
     t2 = time.time()
     lastfm_info = get_track_info(track_basic['name'], track_basic['artist'])
     print(f"[TIMING] get_track_info original: {time.time()-t2:.2f}s")
+    print(f"[DEBUG] artist_mbid: '{lastfm_info.get('artist_mbid') if lastfm_info else 'N/A'}'")
 
     t3 = time.time()
     similare_lb = []

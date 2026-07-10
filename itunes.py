@@ -5,7 +5,7 @@ def get_preview_itunes(artist, track):
     params = {
         "term" : f"{artist} {track}",
         "entity" : "song",
-        "limit" : 3
+        "limit" : 5
     }
 
     try:
@@ -15,8 +15,12 @@ def get_preview_itunes(artist, track):
     except (requests.RequestException, ValueError):
         return None
 
-
+    artist_cerut = artist.lower().strip()
     for item in rezultate:
-        if item.get("previewUrl"):
+        if not item.get("previewUrl"):
+            continue
+        artist_gasit = item.get("artistName", "").lower().strip()
+
+        if artist_cerut in artist_gasit or artist_gasit in artist_cerut:
             return item["previewUrl"]
     return None

@@ -5,6 +5,9 @@ import time
 from database import cauta_imagine_spotify, salveaza_imagine_spotify
 from concurrent.futures import ThreadPoolExecutor
 
+_spotify_block = 0
+def rate_limited():
+    return time.time() < _spotify_block
 
 def formateaza_durata(ms):
     secunde = int((ms / 1000) % 60)
@@ -90,7 +93,13 @@ def calculeaza_scor_relevanta(piesa, cuvinte_cautate, query_complet):
     return popularitate #scor 0 - 100 daca nu mai sunt
 
 def search_track(nume_piesa, token_acces):
-    
+    print(f"[DEBUG] search_track START, q='{nume_piesa}'")
+
+    global _spotify_block
+    if time.time() < _spotify_block:
+        ramas = int(_spotify_block - time.time())
+        print(f"[RATE LIMIT] inca blocat {ramas}s — nu trimit cererea")
+        return []
     SEARCH_URL = 'https://api.spotify.com/v1/search'
     headere = {'Authorization': f'Bearer {token_acces}'}
     
@@ -100,6 +109,7 @@ def search_track(nume_piesa, token_acces):
     MAX_PAGINI = 2
     
     for pagina in range(MAX_PAGINI):
+        print(f"[DEBUG] pagina {pagina}, offset={offset}")
         parametri = {
             'q': nume_piesa,
             'type': 'track',
@@ -109,12 +119,14 @@ def search_track(nume_piesa, token_acces):
         
         try:
             raspuns = requests.get(SEARCH_URL, headers=headere, params=parametri, timeout=5)
+            print(f"[DEBUG] am primit răspuns, status={raspuns.status_code}")
         except requests.exceptions.Timeout:
-            print("Spotify a durat prea mult")
+            print(f"[DEBUG] EROARE requests.get: {type(e).__name__}: {e}")
             break
         
         if raspuns.status_code == 429:
             timp_asteptare = int(raspuns.headers.get('Retry-After', 3))
+            print(f"[RATE LIMIT] Spotify cere să aștepți {timp_asteptare}s")
             if timp_asteptare > 5:
                 break
             time.sleep(timp_asteptare)
@@ -124,7 +136,13 @@ def search_track(nume_piesa, token_acces):
             print(f"Eroare Spotify: {raspuns.status_code}")
             break
         
+        try:
+            raspuns = requests.get(SEARCH_URL, headers=headere, params=parametri, timeout=5)
+        except Exception as e:
+            print(f"[DEBUG] EROARE la requests.get: {type(e).__name__}: {e}")
+            break
         piese_brute = raspuns.json().get('tracks', {}).get('items', [])
+        print(f"[DEBUG] status={raspuns.status_code}, items={len(piese_brute)}, q='{nume_piesa}'")
         if not piese_brute:
             break
         

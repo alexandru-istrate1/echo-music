@@ -227,6 +227,11 @@ def reordoneaza_similar(piesa, artist, lista_lastfm, lista_lb=None):
         tags_originala = [tag.lower() for tag in info_originala['tags']]
         amprenta_originala = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_originala, _genuri_set_norm))
     
+    if not amprenta_originala:
+        tags_artist_orig = get_artist_tags(artist)
+        if tags_artist_orig:
+            amprenta_originala = set(normalizeaza_gen(t) for t in filtreaza_genuri(tags_artist_orig, _genuri_set_norm))
+
     familii_originala = set()
     for g in amprenta_originala:
         familii_originala |= familii_gen(g)

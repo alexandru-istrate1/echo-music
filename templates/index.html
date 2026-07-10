@@ -13,7 +13,7 @@
         button { padding: 5px 15px; background-color: #e0e0e0; border: 1px solid #777; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #ccc; }
         
-        /* Tabelul in stil Old-School */
+        
         h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; color: #d51007; font-size: 16px; margin-top: 0; }
         table.results-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         table.results-table th { background-color: #f0f0f0; border-bottom: 2px solid #ccc; text-align: left; padding: 8px; font-size: 11px; text-transform: uppercase; color: #555; }
@@ -28,6 +28,18 @@
         /* Stiluri noi pentru poze si durata in tabel */
         .cover-image { width: 40px; height: 40px; border: 1px solid #999; object-fit: cover; }
         .duration-cell { font-size: 11px; color: #555; text-align: center; }
+
+        .homepage-section { margin-top: 25px; }
+        .homepage-section h2 { color: #d51007; font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        .track-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 15px; }
+        .track-card { text-decoration: none; color: #111; border: 1px solid #ddd; background: #fff; transition: border-color 0.15s; display: flex; flex-direction: column; }
+        .track-card:hover { border-color: #d51007; }
+        .track-card img, .track-card .no-cover { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+        .track-card .no-cover { background: #ddd; }
+        .card-info { padding: 8px; font-size: 12px; }
+        .card-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-info span { display: block; color: #666; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 
     </style>
 </head>
@@ -93,6 +105,28 @@
             </table>
         {% elif query %}
             <p>No results found for "<strong>{{ query }}</strong>". Try a different spelling.</p>
+        {% endif %}
+
+
+        {% if piese_homepage %}
+        <div class="homepage-section">
+            <h2>Discover</h2>
+            <div class="track-grid">
+                {% for piesa in piese_homepage %}
+                <a href="/track/{{ piesa.id }}" class="track-card">
+                    {% if piesa.image %}
+                        <img src="{{ piesa.image }}" alt="{{ piesa.name }}">
+                    {% else %}
+                        <div class="no-cover"></div>
+                    {% endif %}
+                    <div class="card-info">
+                        <strong>{{ piesa.name }}</strong>
+                        <span>{{ piesa.artist }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
         {% endif %}
     </div>
 
