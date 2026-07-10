@@ -3,7 +3,7 @@ from sp_trck import search_track, get_track_by_id
 from auth import get_spotify_token
 from database import setup_database, cauta_in_cache, salveaza_cautare
 from rate_lim import permite_cerere, curata_ipuri_vechi
-from lfm import get_track_info, get_similar_tracks
+from lfm import get_track_info, get_similar_tracks, get_tag_top_tracks
 from sp_trck import enrich_spotify_images
 from lfm import reordoneaza_similar
 from flask import jsonify
@@ -155,5 +155,22 @@ def api_track_info(spotify_id):
             rez['artist'] = get_artist_details(lastfm_info['artist_mbid'])
     return jsonify(rez)
 
+@app.route("/tag/<nume_tag>")
+def tag_page(nume_tag):
+    piese = get_tag_top_tracks(nume_tag, limit=50)
+
+    return render_template(
+        'tag.html',
+        tag=nume_tag,
+        piese=piese
+    )
+    
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+

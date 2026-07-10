@@ -394,4 +394,40 @@ def get_artist_tags(artist_name):
     return tags
 
 
-    
+def get_tag_top_tracks(tag, limit):
+        parametri = {
+            'method' : 'tag.getTopTracks',
+            'tag' : tag,
+            'limit' : str(limit)
+        }
+
+        raspuns = _request_lastfm(parametri)
+        if raspuns is None:
+            return []
+        
+        piese_brute = raspuns.get("tracks", {}).get("track", [])
+
+        rez = []
+        for piesa in piese_brute:
+            name = piesa.get('name', 'Unknown')
+
+            artist_dict = piesa.get('artist', {})
+            nume_artist_gasit = artist_dict.get('name', 'Unknown')
+
+            playcount = int(piesa.get('playcount', 0))
+
+            url = piesa.get('url', '#')
+
+            imagini = piesa.get('image', [])
+            imagine_url = ''
+            if len(imagini) > 1:
+                imagine_url = imagini[1].get('#text', '')
+            
+            rez.append({
+                'name' : name,
+                'artist' : nume_artist_gasit,
+                'playcount' : playcount,
+                'url' : url,
+                'image' : imagine_url
+            })
+        return rez

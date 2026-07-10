@@ -91,8 +91,8 @@
                     
                     {% if lastfm and lastfm.tags %}
                         <div class="tag-list">
-                            {% for tag in lastfm.tags %}
-                                <span class="tag">{{ tag }}</span>
+                            {% for tag in lastfm.tags %} 
+                                <a href="/tag/{{ tag | urlencode }}" style="text-decoration: none;"><span class="tag">{{ tag }}</span></a>
                             {% endfor %}
                         </div>
                     {% endif %}
