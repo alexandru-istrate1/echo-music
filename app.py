@@ -133,6 +133,17 @@ PIESE = [
     "2rRrV0syrGGaVbVDHXESs3"
 ]
 
+GENURI = [
+    "hyperpop", "chillwave", "glitch pop", "emo", "dub techno",
+    "ambient", "shoegaze", "post-hardcore", "screamo", "vaporwave",
+    "dream pop", "witch house", "breakcore", "art pop", "electropop",
+    "indie pop", "downtempo", "trip hop", "darkwave", "midwest emo",
+    "slowcore", "post-rock", "noise pop", "bedroom pop", "hexd"
+]
+
+def get_genuri_shuffle(n=7):
+    return random.sample(GENURI, min(n, len(GENURI)))
+
 def get_homepage_tracks(n = 10):
     alese = random.sample(PIESE, min(n, len(PIESE)))
 
@@ -191,9 +202,10 @@ def index():
             print(f"Eroare la Spotify: {e}")
             rezultate = []
 
-        from sp_trck import rate_limited
+        from sp_trck import rate_limited, _spotify_block
         if not rezultate and rate_limited:
-            return render_template('index.html', error="Temporary unavailable(too many requests). Try again in a couple of minutes.", query=text)
+            ramas_min = max(1, int((_spotify_block - time.time()) / 60))
+            return render_template('index.html', error=f"Temporary unavailable(too many requests). Try again in ~{ramas_min}.", query=text)
         
         #3 - daca sunt rezultate se salveaza in cache
         if rezultate:
@@ -202,8 +214,8 @@ def index():
         return render_template('index.html', results=rezultate, query=text)
     
     piese_homepage = get_homepage_tracks(n=10)
-    print(f"[DEBUG] homepage: {len(piese_homepage)} piese")
-    return render_template('index.html', piese_homepage=piese_homepage)
+    genuri_sdbar = get_genuri_shuffle(n=7)
+    return render_template('index.html', piese_homepage=piese_homepage, genuri_sdbar=genuri_sdbar)
 
 @app.route('/track/<spotify_id>')
 def track_detail(spotify_id):

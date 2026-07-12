@@ -247,5 +247,45 @@ table.results .cover-sm { width: 32px; height: 32px; border: 1px solid #777; obj
 }
 .loading-text { color: #888; padding: 12px; }
 
-/* preview player */
+
 .preview-player audio { width: 100%; max-width: 300px; }
+
+
+
+
+
+/* MOBILE */
+@media (max-width: 700px) {
+
+    
+    .page, .container, .footer {
+        width: auto;
+        margin: 8px;
+        flex-direction: column; 
+    }
+
+    
+    .sidebar { width: auto; }
+
+    
+    .track-grid { grid-template-columns: repeat(2, 1fr); }
+
+    
+    .track-hero { flex-direction: column; align-items: center; text-align: center; }
+    .track-hero > img, .track-hero > div:first-child { width: 100%; max-width: 260px; height: auto; }
+    .track-hero .info { text-align: left; width: 100%; }
+
+    
+    .search-box input[type=text] { width: 70%; }
+
+    
+    .top-bar .logo { font-size: 22px; }
+
+    
+    table.results th:nth-child(4),   
+    table.results td:nth-child(4),
+    table.results th:nth-child(6),   
+    table.results td:nth-child(6) {
+        display: none;
+    }
+}

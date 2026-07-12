@@ -27,13 +27,9 @@
             <div class="section-bar">Browse Genres</div>
             <div class="panel" style="padding:0;">
                 <ul class="side-list">
-                    <li><a href="/tag/hyperpop">Hyperpop</a></li>
-                    <li><a href="/tag/chillwave">Chillwave</a></li>
-                    <li><a href="/tag/glitch pop">Glitch Pop</a></li>
-                    <li><a href="/tag/emo">Emo</a></li>
-                    <li><a href="/tag/dub techno">Dub Techno</a></li>
-                    <li><a href="/tag/ambient">Ambient</a></li>
-                    <li><a href="/tag/shoegaze">Shoegaze</a></li>
+                    {% for gen in genuri_sdbar %}
+                    <li><a href="/tag/{{ gen | urlencode }}">{{ gen | title }}</a></li>
+                    {% endfor %}
                 </ul>
             </div>
 

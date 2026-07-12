@@ -8,7 +8,8 @@ def setup_database():
     conn = sqlite3.connect(NUME_BAZA_DATE)
     cursor = conn.cursor()
 
-    
+    cursor.execute('PRAGMA journal_mode=WAL')
+    cursor.execute('PRAGMA busy_timeout=5000')
     
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS Piese (

@@ -7,3 +7,5 @@ genuri_mb.json
 test_*.py
 templates/*.lnk
 tst_lfm.py
+*.db-wal
+*.db-shm
