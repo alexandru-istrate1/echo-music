@@ -87,6 +87,13 @@ def setup_database():
     )   
     ''')
 
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS HomepageTracks(
+        spotify_id TEXT PRIMARY KEY,
+        data TEXT,
+        timestamp INT
+    )
+    ''')
 
     #pentru listenbrainz
     cursor.execute('''
@@ -457,5 +464,32 @@ def salveaza_lb_similar(artist_mbid, lista):
     conn.commit()
     conn.close()
 
+def cauta_homepage_track_in_cache(spotify_id, max_varsta_zile=30):
+    limita_timp = int(time.time()) - (max_varsta_zile * 24 * 60 * 60)
+    conn = sqlite3.connect(NUME_BAZA_DATE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT data FROM HomepageTracks
+        WHERE spotify_id = ? AND timestamp > ?
+    ''', (spotify_id, limita_timp))
+    rand = cursor.fetchone()
+    conn.close()
+    if rand is None:
+        return None
+    return json.loads(rand[0])
 
+
+def salveaza_homepage_track(spotify_id, info_dict):
+    if info_dict is None:
+        return
+    timestamp_curent = int(time.time())
+    data_json = json.dumps(info_dict)
+    conn = sqlite3.connect(NUME_BAZA_DATE)
+    cursor = conn.cursor()
+    cursor.execute('''
+    INSERT OR REPLACE INTO HomepageTracks (spotify_id, data, timestamp)
+    VALUES (?, ?, ?)
+    ''', (spotify_id, data_json, timestamp_curent))
+    conn.commit()
+    conn.close()
 

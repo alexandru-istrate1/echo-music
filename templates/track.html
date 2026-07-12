@@ -2,98 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Echo</title>
-    <style>
-        body { font-family: Tahoma, Verdana, Arial, sans-serif; background-color: #e9e9e9; color: #111; margin: 0; padding: 0; font-size: 13px; }
-        .top-bar { background-color: #d51007; color: white; padding: 10px 20px; border-bottom: 4px solid #8a0a04; }
-        .top-bar h1 { margin: 0; font-size: 24px; letter-spacing: -1px; }
-        .container { width: 80%; max-width: 900px; margin: 20px auto; background-color: #ffffff; border: 1px solid #bcbcbc; padding: 20px; }
-        h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; color: #d51007; font-size: 16px; margin-top: 0; }
-        
-        /* Buton back */
-        .back-link { color: #003399; text-decoration: none; font-weight: bold; display: inline-block; margin-bottom: 15px; }
-        .back-link:hover { text-decoration: underline; color: #d51007; }
-        
-        /*piesa principala */
-        .track-hero { display: flex; gap: 20px; padding: 15px; background-color: #f5f5f5; border: 1px solid #ddd; margin-bottom: 20px; }
-        .track-hero img { width: 200px; height: 200px; border: 2px solid #999; object-fit: cover; }
-        .track-hero .info h2 { margin: 0 0 5px 0; color: #d51007; font-size: 22px; border: none; padding: 0; }
-        .track-hero .info .artist-name { font-size: 16px; color: #444; margin-bottom: 10px; }
-        .track-hero .info p { margin: 4px 0; color: #555; }
-        
-        /* Taguri */
-        .tag-list { margin-top: 10px; }
-        .tag { display: inline-block; background-color: #d51007; color: white; padding: 2px 8px; margin-right: 5px; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; }
-        
-        /* Statistici */
-        .stats { margin-top: 10px; font-size: 12px; color: #666; }
-        .stats strong { color: #d51007; }
-        
-        /* Box pentru summary */
-        .summary-box { background-color: #fffbf0; border-left: 4px solid #d51007; padding: 12px 15px; margin-bottom: 20px; font-size: 12px; color: #444; line-height: 1.5; }
-        
-        /* Tabel recomandari */
-        table.results-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        table.results-table th { background-color: #f0f0f0; border-bottom: 2px solid #ccc; text-align: left; padding: 8px; font-size: 11px; text-transform: uppercase; color: #555; }
-        table.results-table td { padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        table.results-table tr:hover { background-color: #fef8f8; }
-        .cover-image { width: 40px; height: 40px; border: 1px solid #999; object-fit: cover; }
-        .match-cell { font-size: 11px; color: #d51007; font-weight: bold; }
-        .play-link { color: #d51007; text-decoration: none; font-size: 11px; font-weight: bold; }
-        .play-link:hover { text-decoration: underline; }
-        
-        /* Loading spinner */
-        .loading-text { color: #888; font-size: 13px; padding: 20px 0; }
-        
-        /* Eroare */
-        .error-msg { color: #d51007; font-weight: bold; padding: 15px; background-color: #fff0f0; border: 1px solid #d51007; }
-
-        /* Wikipedia sectiuni de info*/
-        .info-section {display: none; margin-bottom: 20px;}
-        .info-row { padding: 4px 0; font-size: 12px; color: #444; }
-        .info-row .label { font-weight: bold; color: #555; display: inline-block; width: 100px; }
-        .genre-badge { display: inline-block; background-color: #3b3b3b; color: white; padding: 2px 8px; margin-right: 4px; margin-bottom: 4px; font-size: 11px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo — {{ track.name if track else 'Track' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
     <div class="top-bar">
-        <h1>Echo</h1>
+        <div>
+            <span class="logo">Echo</span>
+            
+        </div>
     </div>
 
     <div class="container">
         <a href="/" class="back-link">← Back to search</a>
 
         {% if error %}
-            <p class="error-msg">⚠️ {{ error }}</p>
+            <div class="error-msg">⚠️ {{ error }}</div>
         {% else %}
 
-            <!--piesa principală -->
             <div class="track-hero">
-
-                    {% if lastfm and lastfm.image %}
-                        <img src="{{ lastfm.image }}" alt="Cover">
-                    {% elif track.image %}
-                        <img src="{{ track.image }}" alt="Cover">
-                    {% else %}
-                        <div style="width: 200px; height: 200px; background-color: #ddd; border: 2px solid #999;"></div>
-                    {% endif %}
+                {% if lastfm and lastfm.image %}
+                    <img src="{{ lastfm.image }}" alt="Cover">
+                {% elif track.image %}
+                    <img src="{{ track.image }}" alt="Cover">
+                {% else %}
+                    <div style="background:#ddd;"></div>
+                {% endif %}
 
                 <div class="info">
-                    <h2> {{ track.name }}</h2>
+                    <h2>{{ track.name }}</h2>
+                    <p class="artist-name">by <strong>{{ track.artist }}</strong></p>
+                    <p>Album: {{ track.album }}</p>
+                    <p>Duration: {{ track.duration }}</p>
 
-                    <p class="artist-name">
-                        by <strong>{{ track.artist }}</strong>
-                    </p>
-
-                    <p>Album: {{ track.album}}</p>
-                    <p>Duration: {{track.duration}}</p>
-                    
                     {% if lastfm and lastfm.tags %}
                         <div class="tag-list">
-                            {% for tag in lastfm.tags %} 
-                                <a href="/tag/{{ tag | urlencode }}" style="text-decoration: none;"><span class="tag">{{ tag }}</span></a>
-                            {% endfor %}
+                            {% for tag in lastfm.tags %}<a href="/tag/{{ tag | urlencode }}" class="tag">{{ tag }}</a>{% endfor %}
                         </div>
                     {% endif %}
 
@@ -103,15 +49,13 @@
                         </div>
                     {% endif %}
 
-                    <p style="margin-top: 12px;">
-                        <a href="{{ track.link }}" target="_blank" class="play-link">SPOTIFY ↗</a>
+                    <p style="margin-top: 10px;">
+                        <a href="{{ track.link }}" target="_blank" class="action">SPOTIFY ↗</a>
                     </p>
 
                     {% if preview_url %}
-                    <div class="preview-player" style="margin-top: 12px;">
-                        <audio controls preload="none" src="{{ preview_url }}" style="width: 100%; max-width: 300px;">
-                            Your browser does not support audio.
-                        </audio>
+                    <div class="preview-player" style="margin-top: 10px;">
+                        <audio controls preload="none" src="{{ preview_url }}">Your browser does not support audio.</audio>
                     </div>
                     {% endif %}
                 </div>
@@ -120,130 +64,107 @@
             {% if lastfm and lastfm.summary %}
                 <div class="summary-box">{{ lastfm.summary | safe }}</div>
             {% endif %}
-            <!--Wikipedia info-->
+
             <div id="about-track" class="info-section">
-                <h2>About This Track</h2>
-                <div id="about-track-content"></div>
+                <div class="sec-title">About This Track</div>
+                <div class="panel" id="about-track-content"></div>
             </div>
 
             <div id="about-artist" class="info-section">
-                <h2>About This Artist</h2>
-                <div id="about-artist-content"></div>
+                <div class="sec-title">About This Artist</div>
+                <div class="panel" id="about-artist-content"></div>
             </div>
-            <!-- recs -->
-            <h2>Similar Tracks</h2>
-            <div id="similar-container">
+
+            <div class="sec-title">Similar Tracks</div>
+            <div id="similar-container" class="panel">
                 <p class="loading-text" id="similar-loading">⏳ Loading similar tracks...</p>
             </div>
 
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     var spotifyId = "{{ track.id }}";
-                    
+
                     fetch('/api/similar/' + spotifyId)
                         .then(function(response) { return response.json(); })
                         .then(function(similare) {
                             var container = document.getElementById('similar-container');
-                            
                             if (similare.length === 0) {
                                 container.innerHTML = '<p>No similar tracks found.</p>';
                                 return;
                             }
-                            
-                            var html = '<table class="results-table">';
-                            html += '<thead><tr>';
-                            html += '<th>Cover</th><th>Track Name</th><th>Artist</th>';
+                            var html = '<table class="results"><thead><tr>';
+                            html += '<th class="num">#</th><th>Cover</th><th>Track</th><th>Artist</th>';
                             html += '<th>Match</th><th>Listeners</th><th>Action</th>';
                             html += '</tr></thead><tbody>';
-                            
                             for (var i = 0; i < similare.length; i++) {
                                 var piesa = similare[i];
                                 var similarity = piesa.similarity_score || 0;
                                 var listeners = piesa.playcount.toLocaleString();
-                                
                                 html += '<tr>';
-                                html += '<td><img src="' + (piesa.image || '') + '" class="cover-image"></td>';
-                                html += '<td><strong>' + piesa.name + '</strong></td>';
-                                html += '<td>' + piesa.artist + '</td>';
-                                html += '<td class="match-cell">' + similarity + '%</td>';
-                                html += '<td>' + listeners + '</td>';
-                                if (piesa.spotify_id){
-                                    html += '<td><a href="/track/' + piesa.spotify_id + '" class="play-link">VIEW ↗</a></td>';
+                                html += '<td class="num">' + (i + 1) + '</td>';
+                                if (piesa.image) {
+                                    html += '<td><img src="' + piesa.image + '" class="cover-sm"></td>';
                                 } else {
-                                    html += '<td><a href="' + piesa.url + '" target="_blank" class="play-link">LAST.FM ↗</a></td>';
+                                    html += '<td><div class="cover-sm" style="background:#ccc;"></div></td>';
+                                }
+                                html += '<td><a href="/track/' + (piesa.spotify_id || '') + '" class="track-link">' + piesa.name + '</a></td>';
+                                html += '<td>' + piesa.artist + '</td>';
+                                html += '<td class="match">' + similarity + '%</td>';
+                                html += '<td>' + listeners + '</td>';
+                                if (piesa.spotify_id) {
+                                    html += '<td><a href="/track/' + piesa.spotify_id + '" class="action">VIEW ↗</a></td>';
+                                } else {
+                                    html += '<td><a href="' + piesa.url + '" target="_blank" class="action">LAST.FM ↗</a></td>';
                                 }
                                 html += '</tr>';
                             }
-                            
                             html += '</tbody></table>';
                             container.innerHTML = html;
                         })
                         .catch(function(err) {
-                            document.getElementById('similar-container').innerHTML = 
-                                '<p>Error loading similar tracks.</p>';
+                            document.getElementById('similar-container').innerHTML = '<p>Error loading similar tracks.</p>';
                             console.error(err);
                         });
-                    // Wikipedia info
+
                     fetch('/api/track-info/' + spotifyId)
                         .then(function(response) { return response.json(); })
                         .then(function(data) {
-                            // About This Track
                             if (data.recording) {
                                 var rec = data.recording;
                                 var trackHtml = '';
-
-                                if (rec.release) {
-                                    trackHtml += '<div class="info-row"><span class="label">Release:</span> ' + rec.release + '</div>';
-                                }
-                                if (rec.label) {
-                                    trackHtml += '<div class="info-row"><span class="label">Label:</span> ' + rec.label + '</div>';
-                                }
+                                if (rec.release) { trackHtml += '<div class="info-row"><span class="label">Release:</span> ' + rec.release + '</div>'; }
+                                if (rec.label) { trackHtml += '<div class="info-row"><span class="label">Label:</span> ' + rec.label + '</div>'; }
                                 if (rec.genres && rec.genres.length > 0) {
                                     trackHtml += '<div class="info-row"><span class="label">Genres:</span> ';
-                                    for (var i = 0; i < rec.genres.length; i++) {
-                                        trackHtml += '<span class="genre-badge">' + rec.genres[i] + '</span>';
-                                    }
+                                    for (var i = 0; i < rec.genres.length; i++) { trackHtml += '<span class="genre-badge">' + rec.genres[i] + '</span>'; }
                                     trackHtml += '</div>';
                                 }
-
                                 if (trackHtml) {
                                     document.getElementById('about-track-content').innerHTML = trackHtml;
                                     document.getElementById('about-track').style.display = 'block';
                                 }
                             }
-
-                            // About The Artist
                             if (data.artist) {
                                 var art = data.artist;
                                 var artistHtml = '';
-
-                                if (art.type) {
-                                    artistHtml += '<div class="info-row"><span class="label">Type:</span> ' + art.type + '</div>';
-                                }
-                                if (art.country) {
-                                    artistHtml += '<div class="info-row"><span class="label">Country:</span> ' + art.country + '</div>';
-                                }
+                                if (art.type) { artistHtml += '<div class="info-row"><span class="label">Type:</span> ' + art.type + '</div>'; }
+                                if (art.country) { artistHtml += '<div class="info-row"><span class="label">Country:</span> ' + art.country + '</div>'; }
                                 if (art.begin) {
                                     var years = art.begin.substring(0, 4) + ' – ' + (art.end ? art.end.substring(0, 4) : 'present');
                                     artistHtml += '<div class="info-row"><span class="label">Active:</span> ' + years + '</div>';
                                 }
                                 if (art.genres && art.genres.length > 0) {
                                     artistHtml += '<div class="info-row"><span class="label">Genres:</span> ';
-                                    for (var j = 0; j < art.genres.length; j++) {
-                                        artistHtml += '<span class="genre-badge">' + art.genres[j] + '</span>';
-                                    }
+                                    for (var j = 0; j < art.genres.length; j++) { artistHtml += '<span class="genre-badge">' + art.genres[j] + '</span>'; }
                                     artistHtml += '</div>';
                                 }
-
                                 if (artistHtml) {
                                     document.getElementById('about-artist-content').innerHTML = artistHtml;
                                     document.getElementById('about-artist').style.display = 'block';
                                 }
                             }
                         })
-                        .catch(function(err) {
-                            console.error('Track info error:', err);
-                        });
+                        .catch(function(err) { console.error('Track info error:', err); });
                 });
             </script>
 
